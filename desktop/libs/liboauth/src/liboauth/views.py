@@ -60,7 +60,8 @@ def show_login_page(request, login_errors=False):
      'socialGoogle':   liboauth.conf.CONSUMER_KEY_GOOGLE.get() != "" and liboauth.conf.CONSUMER_SECRET_GOOGLE.get() != "",
      'socialFacebook': liboauth.conf.CONSUMER_KEY_FACEBOOK.get() != "" and liboauth.conf.CONSUMER_SECRET_FACEBOOK.get() != "",
      'socialLinkedin': liboauth.conf.CONSUMER_KEY_LINKEDIN.get() != "" and liboauth.conf.CONSUMER_SECRET_LINKEDIN.get() != "",
-     'socialTwitter':  liboauth.conf.CONSUMER_KEY_TWITTER.get() != "" and liboauth.conf.CONSUMER_SECRET_TWITTER.get() != ""
+     'socialTwitter':  liboauth.conf.CONSUMER_KEY_TWITTER.get() != "" and liboauth.conf.CONSUMER_SECRET_TWITTER.get() != "",
+     'github':  liboauth.conf.CONSUMER_KEY_GITHUB.get() != "" and liboauth.conf.CONSUMER_SECRET_GITHUB.get() != ""
  })
 
 
@@ -69,11 +70,13 @@ def show_login_page(request, login_errors=False):
 def oauth_login(request):
 
   if 'social' not in request.GET:
-      raise Exception(_("Invalid request: %s") % resp)
+      raise Exception(_("Invalid request: %s") % request)
   else:
       url = OAuthBackend.handleLoginRequest(request)
 
-  return HttpResponseRedirect(url)
+  return render('oauth-redirect.mako', request, {
+      'auth_url': url
+  })
 
   
 @login_notrequired

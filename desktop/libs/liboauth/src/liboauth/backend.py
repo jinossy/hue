@@ -45,7 +45,8 @@ LOG = logging.getLogger(__name__)
 class OAuthBackend(DesktopBackendBase):
 
   @liboauth.metrics.oauth_authentication_time
-  def authenticate(self, access_token):
+  def authenticate(self, *args, **kwargs):
+    access_token = kwargs.pop('access_token', None)
     username = access_token['screen_name']
     password = access_token['oauth_token_secret']
 
@@ -141,6 +142,12 @@ class OAuthBackend(DesktopBackendBase):
             consumer_secret=liboauth.conf.CONSUMER_SECRET_LINKEDIN.get()
             access_token_uri=liboauth.conf.ACCESS_TOKEN_URL_LINKEDIN.get()
             authentication_token_uri=liboauth.conf.AUTHORIZE_URL_LINKEDIN.get()
+
+        elif social == 'github':
+            consumer_key=liboauth.conf.CONSUMER_KEY_GITHUB.get()
+            consumer_secret=liboauth.conf.CONSUMER_SECRET_GITHUB.get()
+            access_token_uri=liboauth.conf.ACCESS_TOKEN_URL_GITHUB.get()
+            authentication_token_uri=liboauth.conf.AUTHORIZE_URL_GITHUB.get()
         
         params = urllib.urlencode({
            'code':code,
@@ -185,7 +192,17 @@ class OAuthBackend(DesktopBackendBase):
                 raise Exception(_("Invalid response from OAuth provider: %s") % resp)
             username = (json.loads(content))['emailAddress']
             access_token = dict(screen_name=map_username(username), oauth_token_secret=access_tok)
-  
+
+        #github
+        elif social == 'github':
+            access_tok = (dict(cgi.parse_qsl(cont)))['access_token']
+            auth_token_uri = authentication_token_uri + access_tok
+            resp, content = parser.request(auth_token_uri, "GET")
+            if resp['status'] != '200':
+                raise Exception(_("Invalid response from OAuth provider: %s") % resp)
+            json_content = json.loads(content)
+            username = json_content["login"]
+            access_token = dict(screen_name=map_username(username), oauth_token_secret=access_tok)
 
     return access_token, nexturl
 
@@ -245,6 +262,17 @@ class OAuthBackend(DesktopBackendBase):
              scope=scope,
              state=state,
              redirect_uri=redirect_uri)
+
+    #github
+    elif social == 'github':
+        consumer_key=liboauth.conf.CONSUMER_KEY_GITHUB.get()
+        token_request_uri = liboauth.conf.REQUEST_TOKEN_URL_GITHUB.get()
+
+        url = "{token_request_uri}?client_id={client_id}&state={state}&redirect_uri={redirect_uri}".format(
+            token_request_uri=token_request_uri,
+            state=state,
+            redirect_uri=redirect_uri,
+            client_id=consumer_key)
     #twitter
     else:
        consumer_key=liboauth.conf.CONSUMER_KEY_TWITTER.get()

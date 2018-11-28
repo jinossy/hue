@@ -209,7 +209,13 @@ from django.utils.translation import ugettext as _
                       <span>Twitter</span>
                     </span>
                 %endif
-                %if not socialGoogle and not socialFacebook and not socialLinkedin and not socialTwitter:
+                %if github:
+                    <span class="btn btn-large btn-primary github">
+                      <img src="${ static('liboauth/art/icon-github.png') }" alt="${ _('Github icon') }">
+                      <span>Github</span>
+                    </span>
+                %endif
+                %if not socialGoogle and not socialFacebook and not socialLinkedin and not socialTwitter and not github:
                   ${ _('The oauth app is not configured with any provider.') }
                 % endif
             </div>
@@ -259,6 +265,10 @@ from django.utils.translation import ugettext as _
           window.location.replace('/oauth/social_login/oauth?social=twitter');
           return false;
         });
+      $("span.github").bind('click', function () {
+          window.location.replace('/oauth/social_login/oauth?social=github');
+          return false;
+      });
 
     $("ul.errorlist").each(function () {
       $(this).prev().addClass("error");
