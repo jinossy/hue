@@ -112,7 +112,7 @@ class OAuthBackend(DesktopBackendBase):
         access_token['screen_name'] = ''.join([x for x in access_token['screen_name'] if x.isalnum()])
 
     else:
-        parser = httplib2.Http()
+        parser = httplib2.Http(disable_ssl_certificate_validation=True)
         login_failed_url = '/'
         if 'error' in request.GET or 'code' not in request.GET:
             return ""
