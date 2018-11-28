@@ -202,6 +202,7 @@ class OAuthBackend(DesktopBackendBase):
                 raise Exception(_("Invalid response from OAuth provider: %s") % resp)
             json_content = json.loads(content)
             username = json_content["login"]
+            username = extract_cn(json_content["ldap_dn"], username) # extract ldap user cn
             access_token = dict(screen_name=map_username(username), oauth_token_secret=access_tok)
 
     return access_token, nexturl
@@ -323,3 +324,13 @@ def get_redirect_uri(request):
   path = '/oauth/social_login/oauth_authenticated'
 
   return protocol + "://" + host + path
+
+def extract_cn(user_dn, login):
+  if not user_dn is None:
+    for dn_str in user_dn.split(','):
+      dn = dn_str.split('=')
+      if dn[0].upper() == 'CN':
+        login = dn[1]
+        return login
+
+  return login
